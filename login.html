@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 — 아산 외국인 커뮤니티</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body class="login-body">
+
+  <div class="login-lang-bar">
+    <button class="lang-btn active" onclick="setLang('ko',this)">한국어</button>
+    <button class="lang-btn" onclick="setLang('en',this)">English</button>
+    <button class="lang-btn" onclick="setLang('vi',this)">Tiếng Việt</button>
+    <button class="lang-btn" onclick="setLang('zh',this)">中文</button>
+    <button class="lang-btn" onclick="setLang('ru',this)">Русский</button>
+  </div>
+
+  <div class="login-wrap">
+    <div class="login-logo">
+      <span class="login-logo-icon">🌏</span>
+      <div class="login-logo-text" id="logo-text">아산 외국인 커뮤니티</div>
+      <div class="login-logo-sub" id="logo-sub">Asan Foreign Community</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" id="lbl-email">이메일</label>
+      <input class="form-input" type="email" id="login-email" placeholder="example@email.com" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="lbl-pw">비밀번호</label>
+      <div class="pw-wrap">
+        <input class="form-input" type="password" id="login-pw" placeholder="••••••••" />
+        <button class="pw-toggle" onclick="togglePw('login-pw', this)">👁</button>
+      </div>
+    </div>
+
+    <div class="login-error hidden" id="login-error"></div>
+    <button class="login-btn" id="btn-login" onclick="doLogin()">
+      <span id="btn-login-text">로그인</span>
+    </button>
+
+    <div class="login-divider"><span id="divider-text">또는</span></div>
+    <button class="login-btn-google" onclick="doGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.71C3.784 10.17 3.682 9.593 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+      </svg>
+      <span id="btn-google-text">Google로 로그인</span>
+    </button>
+
+    <div class="login-bottom-links">
+      <span id="no-account-text">계정이 없으신가요?</span>
+      <a class="login-link" href="register.html" id="go-register-link">회원가입</a>
+    </div>
+
+    <div class="login-success hidden" id="login-success"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBVN7VsK4J7m8Cn_TrbImBs5lgcIukXzuM",
+      authDomain:        "project-7638656566257970339.firebaseapp.com",
+      projectId:         "project-7638656566257970339",
+      storageBucket:     "project-7638656566257970339.firebasestorage.app",
+      messagingSenderId: "1018671314777",
+      appId:             "1:1018671314777:web:944e5b7e7c6b1aa45bbe48",
+      measurementId:     "G-TGVTNG5JBP"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const role = snap.exists() ? snap.data().role : "user";
+        window.location.href = role === "admin" ? "admin.html" : "index.html";
+      }
+    });
+
+    window.doLogin = async () => {
+      const email = document.getElementById("login-email").value.trim();
+      const pw    = document.getElementById("login-pw").value;
+      const errEl = document.getElementById("login-error");
+      const btn   = document.getElementById("btn-login");
+      if (!email || !pw) { showErr(errEl, getMsg("fillAll")); return; }
+      btn.disabled = true;
+      btn.textContent = getMsg("loading");
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, pw);
+        const snap = await getDoc(doc(db, "users", cred.user.uid));
+        const role = snap.exists() ? snap.data().role : "user";
+        window.location.href = role === "admin" ? "admin.html" : "index.html";
+      } catch(e) {
+        showErr(errEl, firebaseErr(e.code));
+        btn.disabled = false;
+        btn.textContent = getLangData().btnLogin;
+      }
+    };
+
+    window.doGoogleLogin = async () => {
+      const errEl = document.getElementById("login-error");
+      try {
+        const cred = await signInWithPopup(auth, googleProvider);
+        const snap = await getDoc(doc(db, "users", cred.user.uid));
+        if (!snap.exists()) {
+          await setDoc(doc(db, "users", cred.user.uid), {
+            name: cred.user.displayName || "사용자",
+            email: cred.user.email, role: "user", nation: "",
+            createdAt: serverTimestamp()
+          });
+        }
+        const role = snap.exists() ? snap.data().role : "user";
+        window.location.href = role === "admin" ? "admin.html" : "index.html";
+      } catch(e) { showErr(errEl, firebaseErr(e.code)); }
+    };
+
+    function firebaseErr(code) {
+      const m = {
+        "auth/user-not-found": getMsg("noUser"),
+        "auth/wrong-password": getMsg("wrongPw"),
+        "auth/invalid-credential": getMsg("wrongPw"),
+        "auth/invalid-email": getMsg("invalidEmail"),
+        "auth/too-many-requests": getMsg("tooMany"),
+        "auth/popup-closed-by-user": getMsg("popupClosed"),
+      };
+      return m[code] || getMsg("unknownErr");
+    }
+    function showErr(el, msg) { el.textContent = msg; el.classList.remove("hidden"); }
+  </script>
+  <script src="login.js"></script>
+</body>
+</html>

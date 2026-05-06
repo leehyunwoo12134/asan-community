@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원가입 — 아산 외국인 커뮤니티</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body class="login-body">
+
+  <div class="login-lang-bar">
+    <button class="lang-btn active" onclick="setLang('ko',this)">한국어</button>
+    <button class="lang-btn" onclick="setLang('en',this)">English</button>
+    <button class="lang-btn" onclick="setLang('vi',this)">Tiếng Việt</button>
+    <button class="lang-btn" onclick="setLang('zh',this)">中文</button>
+    <button class="lang-btn" onclick="setLang('ru',this)">Русский</button>
+  </div>
+
+  <div class="login-wrap">
+    <div class="login-logo">
+      <span class="login-logo-icon">🌏</span>
+      <div class="login-logo-text" id="logo-text">아산 외국인 커뮤니티</div>
+      <div class="login-logo-sub" id="logo-sub">회원가입</div>
+    </div>
+
+    <!-- 진행 단계 표시 -->
+    <div class="reg-steps">
+      <div class="reg-step active" id="step-dot-1"><span>1</span></div>
+      <div class="reg-step-line"></div>
+      <div class="reg-step" id="step-dot-2"><span>2</span></div>
+      <div class="reg-step-line"></div>
+      <div class="reg-step" id="step-dot-3"><span>3</span></div>
+    </div>
+    <div class="reg-step-labels">
+      <span id="step-lbl-1">기본 정보</span>
+      <span id="step-lbl-2">비밀번호</span>
+      <span id="step-lbl-3">추가 정보</span>
+    </div>
+
+    <!-- STEP 1: 기본 정보 -->
+    <div id="step-1">
+      <div class="form-group">
+        <label class="form-label" id="lbl-name">이름 (실명)</label>
+        <input class="form-input" type="text" id="reg-name" placeholder="홍길동" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-email">이메일</label>
+        <input class="form-input" type="email" id="reg-email" placeholder="example@email.com" />
+      </div>
+      <div class="login-error hidden" id="err-1"></div>
+      <button class="login-btn" onclick="goStep(2)" id="btn-step1">
+        <span id="btn-next-1">다음 →</span>
+      </button>
+    </div>
+
+    <!-- STEP 2: 비밀번호 -->
+    <div id="step-2" class="hidden">
+      <div class="form-group">
+        <label class="form-label" id="lbl-pw">비밀번호</label>
+        <div class="pw-wrap">
+          <input class="form-input" type="password" id="reg-pw" placeholder="6자 이상" oninput="checkPwStrength(this.value)" />
+          <button class="pw-toggle" onclick="togglePw('reg-pw',this)">👁</button>
+        </div>
+        <!-- 비밀번호 강도 표시 -->
+        <div class="pw-strength-bar"><div id="pw-bar"></div></div>
+        <div class="pw-strength-label" id="pw-label"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-pw2">비밀번호 확인</label>
+        <div class="pw-wrap">
+          <input class="form-input" type="password" id="reg-pw2" placeholder="다시 입력하세요" />
+          <button class="pw-toggle" onclick="togglePw('reg-pw2',this)">👁</button>
+        </div>
+      </div>
+      <div class="login-error hidden" id="err-2"></div>
+      <div class="reg-btn-row">
+        <button class="login-btn-back" onclick="goStep(1)" id="btn-back-2">← 이전</button>
+        <button class="login-btn" onclick="goStep(3)" id="btn-step2">
+          <span id="btn-next-2">다음 →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3: 추가 정보 -->
+    <div id="step-3" class="hidden">
+      <div class="form-group">
+        <label class="form-label" id="lbl-nation">국적</label>
+        <select class="form-select" id="reg-nation">
+          <option value="">선택해주세요</option>
+          <option value="vn">🇻🇳 베트남</option>
+          <option value="cn">🇨🇳 중국</option>
+          <option value="ph">🇵🇭 필리핀</option>
+          <option value="ru">🇷🇺 러시아</option>
+          <option value="us">🇺🇸 미국 / 영어권</option>
+          <option value="other">기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="lbl-phone">연락처 (선택)</label>
+        <input class="form-input" type="tel" id="reg-phone" placeholder="010-0000-0000" />
+      </div>
+      <!-- 약관 동의 -->
+      <div class="terms-box">
+        <label class="terms-row">
+          <input type="checkbox" id="agree-all" onchange="toggleAllAgree(this)" />
+          <span id="agree-all-text"><strong>전체 동의</strong></span>
+        </label>
+        <div class="terms-divider"></div>
+        <label class="terms-row">
+          <input type="checkbox" id="agree-terms" />
+          <span id="agree-terms-text">이용약관 동의 (필수)</span>
+        </label>
+        <label class="terms-row">
+          <input type="checkbox" id="agree-privacy" />
+          <span id="agree-privacy-text">개인정보 수집 동의 (필수)</span>
+        </label>
+      </div>
+      <div class="login-error hidden" id="err-3"></div>
+      <div class="login-success hidden" id="reg-success"></div>
+      <div class="reg-btn-row">
+        <button class="login-btn-back" onclick="goStep(2)" id="btn-back-3">← 이전</button>
+        <button class="login-btn" onclick="doRegister()" id="btn-register">
+          <span id="btn-register-text">회원가입 완료</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="login-bottom-links">
+      <span id="have-account-text">이미 계정이 있으신가요?</span>
+      <a class="login-link" href="login.html" id="go-login-link">로그인</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBVN7VsK4J7m8Cn_TrbImBs5lgcIukXzuM",
+      authDomain:        "project-7638656566257970339.firebaseapp.com",
+      projectId:         "project-7638656566257970339",
+      storageBucket:     "project-7638656566257970339.firebasestorage.app",
+      messagingSenderId: "1018671314777",
+      appId:             "1:1018671314777:web:944e5b7e7c6b1aa45bbe48",
+      measurementId:     "G-TGVTNG5JBP"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // 단계 이동
+    window.goStep = (step) => {
+      const d = getLangData();
+      // STEP1 → STEP2 검증
+      if (step === 2) {
+        const name  = document.getElementById("reg-name").value.trim();
+        const email = document.getElementById("reg-email").value.trim();
+        const errEl = document.getElementById("err-1");
+        if (!name)  { showErr(errEl, getMsg("fillAll")); return; }
+        if (!email || !email.includes("@")) { showErr(errEl, getMsg("invalidEmail")); return; }
+        errEl.classList.add("hidden");
+      }
+      // STEP2 → STEP3 검증
+      if (step === 3) {
+        const pw   = document.getElementById("reg-pw").value;
+        const pw2  = document.getElementById("reg-pw2").value;
+        const errEl = document.getElementById("err-2");
+        if (pw.length < 6)  { showErr(errEl, getMsg("pwShort")); return; }
+        if (pw !== pw2)      { showErr(errEl, getMsg("pwMismatch")); return; }
+        errEl.classList.add("hidden");
+      }
+
+      [1,2,3].forEach(i => {
+        document.getElementById("step-"+i).classList.add("hidden");
+        document.getElementById("step-dot-"+i).classList.remove("active","done");
+      });
+      document.getElementById("step-"+step).classList.remove("hidden");
+      // 스텝 인디케이터
+      for (let i = 1; i < step; i++) document.getElementById("step-dot-"+i).classList.add("done");
+      document.getElementById("step-dot-"+step).classList.add("active");
+    };
+
+    // 최종 회원가입
+    window.doRegister = async () => {
+      const name    = document.getElementById("reg-name").value.trim();
+      const email   = document.getElementById("reg-email").value.trim();
+      const pw      = document.getElementById("reg-pw").value;
+      const nation  = document.getElementById("reg-nation").value;
+      const phone   = document.getElementById("reg-phone").value.trim();
+      const terms   = document.getElementById("agree-terms").checked;
+      const privacy = document.getElementById("agree-privacy").checked;
+      const errEl   = document.getElementById("err-3");
+      const btn     = document.getElementById("btn-register");
+
+      if (!terms || !privacy) { showErr(errEl, getMsg("agreeRequired")); return; }
+
+      btn.disabled = true;
+      btn.textContent = getMsg("loading");
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pw);
+        await updateProfile(cred.user, { displayName: name });
+        await setDoc(doc(db, "users", cred.user.uid), {
+          name, email, role: "user", nation, phone,
+          createdAt: serverTimestamp()
+        });
+        errEl.classList.add("hidden");
+        const ok = document.getElementById("reg-success");
+        ok.textContent = getMsg("signupOk");
+        ok.classList.remove("hidden");
+        setTimeout(() => window.location.href = "index.html", 1500);
+      } catch(e) {
+        showErr(errEl, firebaseErr(e.code));
+        btn.disabled = false;
+        btn.textContent = getLangData().btnRegister;
+      }
+    };
+
+    function firebaseErr(code) {
+      const m = {
+        "auth/email-already-in-use": getMsg("emailUsed"),
+        "auth/invalid-email":        getMsg("invalidEmail"),
+        "auth/weak-password":        getMsg("weakPw"),
+      };
+      return m[code] || getMsg("unknownErr");
+    }
+    function showErr(el, msg) { el.textContent = msg; el.classList.remove("hidden"); }
+
+    // 전체 동의 토글
+    window.toggleAllAgree = (el) => {
+      ["agree-terms","agree-privacy"].forEach(id => {
+        document.getElementById(id).checked = el.checked;
+      });
+    };
+  </script>
+  <script src="register.js"></script>
+</body>
+</html>
