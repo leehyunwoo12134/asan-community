@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 — 아산 외국인 커뮤니티</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- 관리자 네비게이션 -->
+  <nav class="admin-nav">
+    <div class="admin-nav-logo">🌏 아산 커뮤니티 <span class="admin-badge">관리자</span></div>
+    <div class="admin-nav-right">
+      <span class="admin-nav-name" id="admin-name">관리자</span>
+      <a class="admin-nav-link" href="index.html">사이트 보기</a>
+      <button class="admin-nav-logout" onclick="doLogout()">로그아웃</button>
+    </div>
+  </nav>
+
+  <div class="admin-layout">
+
+    <!-- 사이드바 -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-menu">
+        <div class="sidebar-item active" onclick="showPanel('dashboard', this)" id="menu-dashboard">
+          📊 대시보드
+        </div>
+        <div class="sidebar-item" onclick="showPanel('users', this)" id="menu-users">
+          👥 회원 관리
+        </div>
+        <div class="sidebar-item" onclick="showPanel('notices', this)" id="menu-notices">
+          📌 공지 관리
+        </div>
+        <div class="sidebar-item" onclick="showPanel('inquiries', this)" id="menu-inquiries">
+          💬 문의 관리
+          <span class="sidebar-badge" id="inq-badge">2</span>
+        </div>
+        <div class="sidebar-item" onclick="showPanel('posts', this)" id="menu-posts">
+          📝 게시글 관리
+        </div>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="admin-main">
+
+      <!-- ── 대시보드 ── -->
+      <div id="panel-dashboard">
+        <div class="panel-title">📊 대시보드</div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#E1F5EE;">👥</div>
+            <div class="stat-num" id="stat-users">—</div>
+            <div class="stat-label">전체 회원</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#E6F1FB;">📝</div>
+            <div class="stat-num" id="stat-posts">—</div>
+            <div class="stat-label">게시글</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#FAEEDA;">💬</div>
+            <div class="stat-num" id="stat-inq">—</div>
+            <div class="stat-label">미답변 문의</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#FCEBEB;">📌</div>
+            <div class="stat-num" id="stat-notices">—</div>
+            <div class="stat-label">공지사항</div>
+          </div>
+        </div>
+
+        <!-- 최근 가입 회원 -->
+        <div class="admin-card">
+          <div class="admin-card-title">최근 가입 회원</div>
+          <div id="recent-users-list">
+            <div class="table-loading">불러오는 중...</div>
+          </div>
+        </div>
+
+        <!-- 미답변 문의 -->
+        <div class="admin-card">
+          <div class="admin-card-title">미답변 문의</div>
+          <div id="pending-inq-list">
+            <div class="table-loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 회원 관리 ── -->
+      <div id="panel-users" class="hidden">
+        <div class="panel-title">👥 회원 관리</div>
+        <div class="admin-card">
+          <div class="panel-toolbar">
+            <input class="search-input" id="user-search" placeholder="이름 또는 이메일 검색..." oninput="filterUsers()" />
+            <select class="filter-select" id="user-role-filter" onchange="filterUsers()">
+              <option value="">전체</option>
+              <option value="user">일반 사용자</option>
+              <option value="admin">관리자</option>
+            </select>
+          </div>
+          <div class="data-table" id="users-table">
+            <div class="table-loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 공지 관리 ── -->
+      <div id="panel-notices" class="hidden">
+        <div class="panel-title">📌 공지 관리</div>
+
+        <!-- 새 공지 작성 -->
+        <div class="admin-card">
+          <div class="admin-card-title">새 공지 작성</div>
+          <div class="form-group">
+            <label class="form-label">카테고리</label>
+            <select class="form-select" id="notice-cat">
+              <option value="notice">공지</option>
+              <option value="event">행사</option>
+              <option value="urgent">긴급</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">제목</label>
+            <input class="form-input" id="notice-title-input" placeholder="공지 제목을 입력하세요" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">내용</label>
+            <textarea class="form-textarea" id="notice-body" placeholder="공지 내용을 입력하세요" rows="4"></textarea>
+          </div>
+          <div class="form-check-row">
+            <input type="checkbox" id="notice-pin" />
+            <label for="notice-pin" style="font-size:13px;cursor:pointer;">상단 고정</label>
+          </div>
+          <button class="admin-btn-primary" onclick="postNotice()">공지 등록</button>
+          <div class="form-success hidden" id="notice-success">✅ 공지가 등록되었습니다!</div>
+        </div>
+
+        <!-- 공지 목록 -->
+        <div class="admin-card">
+          <div class="admin-card-title">공지 목록</div>
+          <div id="notices-list">
+            <div class="table-loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 문의 관리 ── -->
+      <div id="panel-inquiries" class="hidden">
+        <div class="panel-title">💬 문의 관리</div>
+        <div class="admin-card">
+          <div class="panel-toolbar">
+            <select class="filter-select" id="inq-status-filter" onchange="filterInquiries()">
+              <option value="">전체</option>
+              <option value="wait">미답변</option>
+              <option value="done">답변완료</option>
+            </select>
+          </div>
+          <div id="inquiries-list">
+            <div class="table-loading">불러오는 중...</div>
+          </div>
+        </div>
+
+        <!-- 답변 작성 모달 -->
+        <div class="modal-overlay hidden" id="reply-modal">
+          <div class="modal-box">
+            <div class="modal-title">💬 문의 답변 작성</div>
+            <div class="modal-inq-body" id="modal-inq-content"></div>
+            <div class="form-group" style="margin-top:12px;">
+              <label class="form-label">답변 내용</label>
+              <textarea class="form-textarea" id="reply-text" rows="4" placeholder="답변을 입력하세요"></textarea>
+            </div>
+            <div class="modal-btn-row">
+              <button class="admin-btn-outline" onclick="closeModal()">취소</button>
+              <button class="admin-btn-primary" onclick="submitReply()">답변 등록</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 게시글 관리 ── -->
+      <div id="panel-posts" class="hidden">
+        <div class="panel-title">📝 게시글 관리</div>
+        <div class="admin-card">
+          <div class="panel-toolbar">
+            <input class="search-input" id="post-search" placeholder="게시글 제목 검색..." oninput="filterPosts()" />
+          </div>
+          <div id="posts-list">
+            <div class="table-loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, collection, doc, getDoc, getDocs,
+      setDoc, addDoc, updateDoc, deleteDoc,
+      query, where, orderBy, limit, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBVN7VsK4J7m8Cn_TrbImBs5lgcIukXzuM",
+      authDomain:        "project-7638656566257970339.firebaseapp.com",
+      projectId:         "project-7638656566257970339",
+      storageBucket:     "project-7638656566257970339.firebasestorage.app",
+      messagingSenderId: "1018671314777",
+      appId:             "1:1018671314777:web:944e5b7e7c6b1aa45bbe48",
+      measurementId:     "G-TGVTNG5JBP"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    let allUsers = [], allInquiries = [], allNotices = [], allPosts = [];
+    let currentInqId = null;
+
+    // ── 인증 확인 ──
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "login.html"; return; }
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists() || snap.data().role !== "admin") {
+        alert("관리자 권한이 없습니다.");
+        window.location.href = "index.html";
+        return;
+      }
+      document.getElementById("admin-name").textContent = snap.data().name + " 관리자";
+      loadDashboard();
+    });
+
+    window.doLogout = async () => { await signOut(auth); window.location.href = "login.html"; };
+
+    // ── 대시보드 로드 ──
+    async function loadDashboard() {
+      const [usersSnap, postsSnap, inqSnap, noticesSnap] = await Promise.all([
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "posts")),
+        getDocs(query(collection(db, "inquiries"), where("status","==","wait"))),
+        getDocs(collection(db, "notices")),
+      ]);
+
+      document.getElementById("stat-users").textContent   = usersSnap.size;
+      document.getElementById("stat-posts").textContent   = postsSnap.size;
+      document.getElementById("stat-inq").textContent     = inqSnap.size;
+      document.getElementById("stat-notices").textContent = noticesSnap.size;
+      if (inqSnap.size > 0) document.getElementById("inq-badge").textContent = inqSnap.size;
+
+      // 최근 회원
+      allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const recent = [...allUsers].sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0)).slice(0,5);
+      document.getElementById("recent-users-list").innerHTML = recent.length
+        ? recent.map(u => `
+          <div class="table-row">
+            <span class="tr-name">${u.name}</span>
+            <span class="tr-email">${u.email}</span>
+            <span class="tr-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? '관리자' : '사용자'}</span>
+          </div>`).join('')
+        : '<div class="table-empty">회원이 없습니다.</div>';
+
+      // 미답변 문의
+      allInquiries = inqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      document.getElementById("pending-inq-list").innerHTML = allInquiries.length
+        ? allInquiries.slice(0,5).map(i => `
+          <div class="table-row" style="cursor:pointer" onclick="openReply('${i.id}','${(i.title||'').replace(/'/g,"\\'")}','${(i.body||'').replace(/'/g,"\\'")}')">
+            <span class="tr-name">${i.title || '(제목없음)'}</span>
+            <span class="tr-email">${i.category || ''}</span>
+            <span class="badge-wait">미답변</span>
+          </div>`).join('')
+        : '<div class="table-empty">미답변 문의가 없습니다.</div>';
+    }
+
+    // ── 회원 관리 ──
+    window.filterUsers = () => {
+      const q    = document.getElementById("user-search").value.toLowerCase();
+      const role = document.getElementById("user-role-filter").value;
+      const filtered = allUsers.filter(u =>
+        (!q    || u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)) &&
+        (!role || u.role === role)
+      );
+      renderUsersTable(filtered);
+    };
+
+    function renderUsersTable(users) {
+      const el = document.getElementById("users-table");
+      if (!users.length) { el.innerHTML = '<div class="table-empty">검색 결과가 없습니다.</div>'; return; }
+      el.innerHTML = `
+        <div class="table-head">
+          <span>이름</span><span>이메일</span><span>국적</span><span>역할</span><span>관리</span>
+        </div>` +
+        users.map(u => `
+          <div class="table-row">
+            <span class="tr-name">${u.name}</span>
+            <span class="tr-email">${u.email}</span>
+            <span>${u.nation || '—'}</span>
+            <span class="tr-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? '관리자' : '사용자'}</span>
+            <span>
+              <button class="tbl-btn" onclick="toggleRole('${u.id}','${u.role}')">
+                ${u.role === 'admin' ? '사용자로 변경' : '관리자로 변경'}
+              </button>
+            </span>
+          </div>`).join('');
+    }
+
+    window.toggleRole = async (uid, currentRole) => {
+      if (!confirm(currentRole === 'admin' ? '관리자 권한을 제거하시겠습니까?' : '관리자 권한을 부여하시겠습니까?')) return;
+      const newRole = currentRole === 'admin' ? 'user' : 'admin';
+      await updateDoc(doc(db, "users", uid), { role: newRole });
+      allUsers = allUsers.map(u => u.id === uid ? { ...u, role: newRole } : u);
+      filterUsers();
+    };
+
+    // ── 공지 관리 ──
+    window.postNotice = async () => {
+      const title = document.getElementById("notice-title-input").value.trim();
+      const body  = document.getElementById("notice-body").value.trim();
+      const cat   = document.getElementById("notice-cat").value;
+      const pin   = document.getElementById("notice-pin").checked;
+      if (!title || !body) { alert("제목과 내용을 입력하세요."); return; }
+      await addDoc(collection(db, "notices"), {
+        title, body, category: cat, isPinned: pin, createdAt: serverTimestamp()
+      });
+      document.getElementById("notice-success").classList.remove("hidden");
+      setTimeout(() => document.getElementById("notice-success").classList.add("hidden"), 2000);
+      document.getElementById("notice-title-input").value = "";
+      document.getElementById("notice-body").value = "";
+      loadNoticesList();
+    };
+
+    async function loadNoticesList() {
+      const snap = await getDocs(query(collection(db, "notices"), orderBy("createdAt","desc")));
+      allNotices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const el = document.getElementById("notices-list");
+      el.innerHTML = allNotices.length
+        ? allNotices.map(n => `
+          <div class="table-row">
+            <span class="tr-badge tag-${n.category}">${n.category}</span>
+            <span class="tr-name" style="flex:1">${n.title}</span>
+            ${n.isPinned ? '<span style="color:#1D9E75;font-size:12px;">📌 고정</span>' : ''}
+            <button class="tbl-btn tbl-btn-danger" onclick="deleteNotice('${n.id}')">삭제</button>
+          </div>`).join('')
+        : '<div class="table-empty">등록된 공지가 없습니다.</div>';
+    }
+
+    window.deleteNotice = async (id) => {
+      if (!confirm("이 공지를 삭제하시겠습니까?")) return;
+      await deleteDoc(doc(db, "notices", id));
+      loadNoticesList();
+    };
+
+    // ── 문의 관리 ──
+    window.filterInquiries = async () => {
+      const status = document.getElementById("inq-status-filter").value;
+      const q = status
+        ? query(collection(db, "inquiries"), where("status","==",status))
+        : collection(db, "inquiries");
+      const snap = await getDocs(q);
+      allInquiries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderInquiriesList();
+    };
+
+    function renderInquiriesList() {
+      const el = document.getElementById("inquiries-list");
+      el.innerHTML = allInquiries.length
+        ? `<div class="table-head"><span>제목</span><span>유형</span><span>상태</span><span>관리</span></div>` +
+          allInquiries.map(i => `
+          <div class="table-row">
+            <span class="tr-name" style="flex:1">${i.title || '(제목없음)'}</span>
+            <span>${i.category || '—'}</span>
+            <span class="${i.status === 'wait' ? 'badge-wait' : 'badge-done'}">${i.status === 'wait' ? '미답변' : '답변완료'}</span>
+            ${i.status === 'wait'
+              ? `<button class="tbl-btn" onclick="openReply('${i.id}','${(i.title||'').replace(/'/g,"\\'")}','${(i.body||'').replace(/'/g,"\\'")}')">답변하기</button>`
+              : `<span style="font-size:11px;color:#aaa">완료</span>`}
+          </div>`).join('')
+        : '<div class="table-empty">문의가 없습니다.</div>';
+    }
+
+    window.openReply = (id, title, body) => {
+      currentInqId = id;
+      document.getElementById("modal-inq-content").innerHTML =
+        `<strong>${title}</strong><p style="margin-top:6px;font-size:12px;color:#555;">${body}</p>`;
+      document.getElementById("reply-text").value = "";
+      document.getElementById("reply-modal").classList.remove("hidden");
+      showPanel("inquiries", document.getElementById("menu-inquiries"));
+    };
+
+    window.closeModal = () => document.getElementById("reply-modal").classList.add("hidden");
+
+    window.submitReply = async () => {
+      const reply = document.getElementById("reply-text").value.trim();
+      if (!reply) { alert("답변 내용을 입력하세요."); return; }
+      await updateDoc(doc(db, "inquiries", currentInqId), {
+        status: "done", reply, repliedAt: serverTimestamp()
+      });
+      closeModal();
+      filterInquiries();
+    };
+
+    // ── 게시글 관리 ──
+    async function loadPosts() {
+      const snap = await getDocs(query(collection(db, "posts"), orderBy("createdAt","desc")));
+      allPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderPostsList(allPosts);
+    }
+
+    window.filterPosts = () => {
+      const q = document.getElementById("post-search").value.toLowerCase();
+      renderPostsList(allPosts.filter(p => (p.title||p.body||'').toLowerCase().includes(q)));
+    };
+
+    function renderPostsList(posts) {
+      const el = document.getElementById("posts-list");
+      el.innerHTML = posts.length
+        ? `<div class="table-head"><span>내용</span><span>작성자</span><span>관리</span></div>` +
+          posts.map(p => `
+          <div class="table-row">
+            <span class="tr-name" style="flex:1">${(p.body||'').substring(0,40)}...</span>
+            <span>${p.author || '—'}</span>
+            <button class="tbl-btn tbl-btn-danger" onclick="deletePost('${p.id}')">삭제</button>
+          </div>`).join('')
+        : '<div class="table-empty">게시글이 없습니다.</div>';
+    }
+
+    window.deletePost = async (id) => {
+      if (!confirm("이 게시글을 삭제하시겠습니까?")) return;
+      await deleteDoc(doc(db, "posts", id));
+      loadPosts();
+    };
+
+    // ── 패널 전환 ──
+    window.showPanel = (name, el) => {
+      ['dashboard','users','notices','inquiries','posts'].forEach(p => {
+        document.getElementById("panel-"+p).classList.add("hidden");
+        document.getElementById("menu-"+p).classList.remove("active");
+      });
+      document.getElementById("panel-"+name).classList.remove("hidden");
+      el.classList.add("active");
+      if (name === 'users')     { if (!allUsers.length) loadDashboard(); renderUsersTable(allUsers); }
+      if (name === 'notices')   loadNoticesList();
+      if (name === 'inquiries') filterInquiries();
+      if (name === 'posts')     loadPosts();
+    };
+  </script>
+</body>
+</html>
